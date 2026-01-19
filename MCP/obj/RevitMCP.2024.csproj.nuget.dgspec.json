@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\User\\Desktop\\REVIT_MCP\\REVIT_MCP_study\\MCP\\RevitMCP.2024.csproj": {}
+    "d:\\David\\BIM MCP\\REVIT_MCP_study\\MCP\\RevitMCP.2024.csproj": {}
   },
   "projects": {
-    "C:\\Users\\User\\Desktop\\REVIT_MCP\\REVIT_MCP_study\\MCP\\RevitMCP.2024.csproj": {
+    "d:\\David\\BIM MCP\\REVIT_MCP_study\\MCP\\RevitMCP.2024.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\User\\Desktop\\REVIT_MCP\\REVIT_MCP_study\\MCP\\RevitMCP.2024.csproj",
+        "projectUniqueName": "d:\\David\\BIM MCP\\REVIT_MCP_study\\MCP\\RevitMCP.2024.csproj",
         "projectName": "RevitMCP",
-        "projectPath": "C:\\Users\\User\\Desktop\\REVIT_MCP\\REVIT_MCP_study\\MCP\\RevitMCP.2024.csproj",
-        "packagesPath": "C:\\Users\\User\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\User\\Desktop\\REVIT_MCP\\REVIT_MCP_study\\MCP\\obj\\",
+        "projectPath": "d:\\David\\BIM MCP\\REVIT_MCP_study\\MCP\\RevitMCP.2024.csproj",
+        "packagesPath": "C:\\Users\\User_20251128\\.nuget\\packages\\",
+        "outputPath": "d:\\David\\BIM MCP\\REVIT_MCP_study\\MCP\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\User\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\User_20251128\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net48"
