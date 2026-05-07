@@ -202,4 +202,16 @@ export const baseTools: Tool[] = [
             required: ["category"],
         },
     },
+    {
+        name: "analyze_floor_slopes",
+        description: "紀錄樓板表面幾何包含的最大及最小坡度值，並寫入適合的參數欄位（如 Comments、Mark 或自訂參數）。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                elementIds: { type: "array", items: { type: "number" }, description: "要檢查的樓板 ID 陣列（選填，若未提供則檢查所有室外樓板）" },
+                minSlopeParam: { type: "string", description: "寫入最小坡度的參數名稱（預設：Comments）", default: "Comments" },
+                maxSlopeParam: { type: "string", description: "寫入最大坡度的參數名稱（預設：Comments）", default: "Comments" }
+            }
+        }
+    }
 ];
