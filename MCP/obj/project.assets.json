@@ -163,18 +163,18 @@
           }
         }
       },
-      "Nice3point.Revit.Api.RevitAPI/2025.4.20": {
+      "Nice3point.Revit.Api.RevitAPI/2025.4.41": {
         "type": "package",
         "compile": {
-          "ref/net8.0/RevitAPI.dll": {
+          "ref/net8.0-windows7.0/RevitAPI.dll": {
             "related": ".xml"
           }
         }
       },
-      "Nice3point.Revit.Api.RevitAPIUI/2025.4.20": {
+      "Nice3point.Revit.Api.RevitAPIUI/2025.4.41": {
         "type": "package",
         "compile": {
-          "ref/net8.0/RevitAPIUI.dll": {
+          "ref/net8.0-windows7.0/RevitAPIUI.dll": {
             "related": ".xml"
           }
         }
@@ -1605,36 +1605,36 @@
         "packageIcon.png"
       ]
     },
-    "Nice3point.Revit.Api.RevitAPI/2025.4.20": {
-      "sha512": "22qIOUsgbgHN4j1maF+nzbluR9o6Drqxrjyhij8xK2kJtAbw9huSJAAix+9ODdFmR72T12niv6CX+tA0kJpDJQ==",
+    "Nice3point.Revit.Api.RevitAPI/2025.4.41": {
+      "sha512": "L+zOGnMn0U+kckJfzMKKtARIqkhDYcg5UtsNffnDM8+04Rx4zoWY6C9kxOBJTHJqgt8za/A0LxWubSfWHgvjDg==",
       "type": "package",
-      "path": "nice3point.revit.api.revitapi/2025.4.20",
+      "path": "nice3point.revit.api.revitapi/2025.4.41",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
         "License.md",
         "Readme.md",
         "images/PackageIcon.png",
-        "nice3point.revit.api.revitapi.2025.4.20.nupkg.sha512",
+        "nice3point.revit.api.revitapi.2025.4.41.nupkg.sha512",
         "nice3point.revit.api.revitapi.nuspec",
-        "ref/net8.0/RevitAPI.dll",
-        "ref/net8.0/RevitAPI.xml"
+        "ref/net8.0-windows7.0/RevitAPI.dll",
+        "ref/net8.0-windows7.0/RevitAPI.xml"
       ]
     },
-    "Nice3point.Revit.Api.RevitAPIUI/2025.4.20": {
-      "sha512": "Ewmuk36yE9i4IMhNj4q8K7DTZKhcruz0zG45y4/1SsHgvmretXysQB+3eR/lkcPXOrXeHa/soxZA6R3zRzuPNg==",
+    "Nice3point.Revit.Api.RevitAPIUI/2025.4.41": {
+      "sha512": "oTmL9O6CL16VSmkTHtfeFXBDhd8eSpoMHP73MoKkdxqLkuMr5jL8fCsXkaEo6y75ez/hWsrBJ2kZ8brBCmvJqA==",
       "type": "package",
-      "path": "nice3point.revit.api.revitapiui/2025.4.20",
+      "path": "nice3point.revit.api.revitapiui/2025.4.41",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
         "License.md",
         "Readme.md",
         "images/PackageIcon.png",
-        "nice3point.revit.api.revitapiui.2025.4.20.nupkg.sha512",
+        "nice3point.revit.api.revitapiui.2025.4.41.nupkg.sha512",
         "nice3point.revit.api.revitapiui.nuspec",
-        "ref/net8.0/RevitAPIUI.dll",
-        "ref/net8.0/RevitAPIUI.xml"
+        "ref/net8.0-windows7.0/RevitAPIUI.dll",
+        "ref/net8.0-windows7.0/RevitAPIUI.xml"
       ]
     },
     "runtime.debian.8-x64.runtime.native.System.Security.Cryptography.OpenSsl/4.3.2": {
