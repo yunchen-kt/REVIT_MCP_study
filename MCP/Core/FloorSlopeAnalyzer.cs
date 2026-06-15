@@ -4,7 +4,6 @@ using System.Linq;
 using Autodesk.Revit.DB;
 using Newtonsoft.Json.Linq;
 
-// Revit 2025+ ElementId: int -> long
 #if REVIT2025_OR_GREATER
 using IdType = System.Int64;
 #else
@@ -13,126 +12,97 @@ using IdType = System.Int32;
 
 namespace RevitMCP.Core
 {
-    public class FloorSlopeAnalyzer
+    /// <summary>
+    /// 樓板表面坡度分析。
+    /// 以 Solid → PlanarFace 的法向量與 Z 軸夾角，計算每片「朝上頂面」的坡度百分比，
+    /// 可批次處理指定樓板，或自動收集 Function=Exterior 的樓板，並將 Min/Max 坡度回寫至指定參數。
+    ///
+    /// 獨立靜態類別，不影響既有 CommandExecutor 邏輯，遵循現有 case-routing 模式。
+    /// 原始需求、演算法與實測來源：Issue #45 by yunchen-kt。
+    /// </summary>
+    internal static class FloorSlopeAnalyzer
     {
-        public static object AnalyzeAndWriteSlopes(Document doc, JObject parameters)
+        // 朝上頂面判定門檻：法向量正規化後 Z 分量 > 此值才視為「排水頂面」。
+        // 0.7 ≈ 與水平夾角 45° 內，可納入緩坡與斜坡排水面，同時排除近垂直的板側 / 倒角面
+        // （那些 n.Z 接近 0，會吐出數百 % 的假坡度）。排水檢討屬緩坡（1~2%），此門檻不會誤殺真頂面。
+        private const double UpwardNormalThreshold = 0.7;
+
+        /// <summary>
+        /// 命令入口。解析 parameters（elementIds / paramName），分析坡度並回寫，回傳結構化結果。
+        /// </summary>
+        public static object Run(Document doc, JObject parameters)
         {
-            string minSlopeParamName = parameters["minSlopeParam"]?.Value<string>() ?? "Comments";
-            string maxSlopeParamName = parameters["maxSlopeParam"]?.Value<string>() ?? "Comments";
+            if (doc == null)
+                return new { Success = false, Message = "無可用文件 (ActiveUIDocument.Document == null)。" };
 
-            var elementIdsToken = parameters["elementIds"] as JArray;
-            List<Floor> targetFloors = new List<Floor>();
+            string paramName = parameters["paramName"]?.Value<string>();
+            if (string.IsNullOrWhiteSpace(paramName))
+                paramName = "Comments";
 
-            if (elementIdsToken != null && elementIdsToken.Count > 0)
+            List<Floor> floors = CollectFloors(doc, parameters);
+            if (floors.Count == 0)
             {
-                foreach (var token in elementIdsToken)
+                return new
                 {
-                    IdType id = token.Value<IdType>();
-                    Element elem = doc.GetElement(new ElementId(id));
-                    if (elem is Floor floor)
-                    {
-                        targetFloors.Add(floor);
-                    }
-                }
-            }
-            else
-            {
-                // default to all exterior floors
-                var allFloors = new FilteredElementCollector(doc)
-                    .OfClass(typeof(Floor))
-                    .Cast<Floor>();
-                    
-                foreach (var floor in allFloors)
-                {
-                    Parameter functionParam = floor.get_Parameter(BuiltInParameter.FUNCTION_PARAM);
-                    if (functionParam != null && functionParam.AsInteger() == (int)WallFunction.Exterior)
-                    {
-                        targetFloors.Add(floor);
-                    }
-                }
+                    Success = false,
+                    Message = "找不到符合條件的樓板。未指定 elementIds 時，會自動收集 Function=Exterior 的樓板。"
+                };
             }
 
-            Options geomOptions = new Options { DetailLevel = ViewDetailLevel.Fine };
             var results = new List<object>();
+            var errors = new List<string>();
+            int processed = 0;
 
-            using (Transaction trans = new Transaction(doc, "Analyze and Write Floor Slopes"))
+            using (Transaction trans = new Transaction(doc, "分析樓板坡度"))
             {
                 trans.Start();
 
-                foreach (Floor floor in targetFloors)
+                foreach (Floor floor in floors)
                 {
-                    GeometryElement geomElem = floor.get_Geometry(geomOptions);
-                    double minSlope = double.MaxValue;
-                    double maxSlope = double.MinValue;
-                    bool foundUpwardFace = false;
-
-                    if (geomElem != null)
+                    try
                     {
-                        foreach (GeometryObject geomObj in geomElem)
+                        var slope = ComputeSlope(floor);
+                        if (slope == null)
                         {
-                            if (geomObj is Solid solid && solid.Volume > 0)
-                            {
-                                foreach (Face face in solid.Faces)
-                                {
-                                    if (face is PlanarFace planarFace)
-                                    {
-                                        XYZ normal = planarFace.FaceNormal;
-                                        // 僅檢查朝上的頂部表面 (Z > 0.001)
-                                        if (normal.Z > 0.001)
-                                        {
-                                            double angleWithVertical = normal.AngleTo(XYZ.BasisZ);
-                                            double slopePercent = Math.Tan(angleWithVertical) * 100.0;
-
-                                            if (slopePercent < minSlope) minSlope = slopePercent;
-                                            if (slopePercent > maxSlope) maxSlope = slopePercent;
-                                            foundUpwardFace = true;
-                                        }
-                                    }
-                                }
-                            }
+                            errors.Add($"樓板 {floor.Id.GetIdValue()} 無可分析的朝上平面（可能為曲面或無 PlanarFace）。");
+                            continue;
                         }
-                    }
 
-                    if (foundUpwardFace)
-                    {
-                        Parameter minParam = floor.LookupParameter(minSlopeParamName);
-                        Parameter maxParam = floor.LookupParameter(maxSlopeParamName);
+                        double minPct = slope.Item1;
+                        double maxPct = slope.Item2;
+                        int faceCount = slope.Item3;
 
-                        string minStr = minSlope.ToString("F2") + "%";
-                        string maxStr = maxSlope.ToString("F2") + "%";
-
-                        bool written = false;
-
-                        if (minSlopeParamName == maxSlopeParamName)
+                        string written = null;
+                        Parameter p = floor.LookupParameter(paramName);
+                        if (p != null && !p.IsReadOnly && p.StorageType == StorageType.String)
                         {
-                            if (minParam != null && !minParam.IsReadOnly)
-                            {
-                                minParam.Set($"Slope: {minStr} ~ {maxStr}");
-                                written = true;
-                            }
+                            written = $"Slope {minPct:F2}%~{maxPct:F2}%";
+                            p.Set(written);
+                        }
+                        else if (p != null && !p.IsReadOnly && p.StorageType == StorageType.Double)
+                        {
+                            // 數值欄位以「比例值」寫入最大坡度（例如 2% → 0.02）。
+                            p.Set(maxPct / 100.0);
+                            written = $"{maxPct:F2}% (max, numeric)";
                         }
                         else
                         {
-                            if (minParam != null && !minParam.IsReadOnly)
-                            {
-                                minParam.Set(minStr);
-                                written = true;
-                            }
-                            if (maxParam != null && !maxParam.IsReadOnly)
-                            {
-                                maxParam.Set(maxStr);
-                                written = true;
-                            }
+                            errors.Add($"樓板 {floor.Id.GetIdValue()} 的參數 '{paramName}' 不存在 / 唯讀 / 型別不符，坡度未回寫（數值仍於回傳中提供）。");
                         }
 
                         results.Add(new
                         {
                             ElementId = floor.Id.GetIdValue(),
-                            Name = floor.Name,
-                            MinSlope = minSlope,
-                            MaxSlope = maxSlope,
+                            MinSlopePercent = Math.Round(minPct, 2),
+                            MaxSlopePercent = Math.Round(maxPct, 2),
+                            UpwardFaceCount = faceCount,
                             Written = written
                         });
+                        processed++;
+                    }
+                    catch (Exception ex)
+                    {
+                        errors.Add($"樓板 {floor.Id.GetIdValue()} 分析失敗: {ex.Message}");
                     }
                 }
 
@@ -141,9 +111,111 @@ namespace RevitMCP.Core
 
             return new
             {
-                ProcessedCount = results.Count,
-                Results = results
+                Success = errors.Count == 0,
+                ProcessedCount = processed,
+                ParameterName = paramName,
+                Floors = results,
+                Errors = errors
             };
+        }
+
+        /// <summary>
+        /// 收集目標樓板：優先用傳入的 elementIds；否則自動收集 Function=Exterior 的樓板。
+        /// </summary>
+        private static List<Floor> CollectFloors(Document doc, JObject parameters)
+        {
+            var ids = parameters["elementIds"] as JArray;
+            if (ids != null && ids.Count > 0)
+            {
+                var list = new List<Floor>();
+                foreach (var token in ids)
+                {
+                    try
+                    {
+                        IdType v = token.Value<IdType>();
+                        if (doc.GetElement(new ElementId(v)) is Floor f)
+                            list.Add(f);
+                    }
+                    catch
+                    {
+                        // 忽略單一無效 ID，不中斷整批
+                    }
+                }
+                return list;
+            }
+
+            return new FilteredElementCollector(doc)
+                .OfClass(typeof(Floor))
+                .Cast<Floor>()
+                .Where(f => IsExterior(doc, f))
+                .ToList();
+        }
+
+        /// <summary>
+        /// 判定樓板的型別 Function 是否為 Exterior（FUNCTION_PARAM == 1）。
+        /// </summary>
+        private static bool IsExterior(Document doc, Floor floor)
+        {
+            Element type = doc.GetElement(floor.GetTypeId());
+            Parameter fp = type?.get_Parameter(BuiltInParameter.FUNCTION_PARAM);
+            return fp != null && fp.AsInteger() == 1; // 0 = Interior, 1 = Exterior
+        }
+
+        /// <summary>
+        /// 計算單片樓板所有朝上 PlanarFace 的坡度，回傳 (minPercent, maxPercent, upwardFaceCount)；
+        /// 無朝上平面時回傳 null。
+        /// </summary>
+        private static Tuple<double, double, int> ComputeSlope(Floor floor)
+        {
+            var opt = new Options
+            {
+                ComputeReferences = false,
+                IncludeNonVisibleObjects = false,
+                DetailLevel = ViewDetailLevel.Fine
+            };
+
+            GeometryElement geo = floor.get_Geometry(opt);
+            if (geo == null) return null;
+
+            var slopes = new List<double>();
+            CollectUpwardSlopes(geo, slopes);
+
+            if (slopes.Count == 0) return null;
+            return Tuple.Create(slopes.Min(), slopes.Max(), slopes.Count);
+        }
+
+        /// <summary>
+        /// 走訪幾何，蒐集所有朝上 PlanarFace 的坡度%。會遞迴進入 GeometryInstance，
+        /// 避免巢狀幾何（被 instance 包住的 Solid）被漏算而誤判為「無頂面」。
+        /// </summary>
+        private static void CollectUpwardSlopes(IEnumerable<GeometryObject> geometry, List<double> slopes)
+        {
+            foreach (GeometryObject obj in geometry)
+            {
+                if (obj is Solid solid)
+                {
+                    if (solid.Faces.Size == 0) continue;
+                    foreach (Face face in solid.Faces)
+                    {
+                        if (!(face is PlanarFace pf)) continue;
+
+                        XYZ n = pf.FaceNormal;
+                        if (n.GetLength() < 1e-9) continue;
+                        n = n.Normalize();
+
+                        // 僅取朝上頂面；n.Z = 法向量與垂直 Z 軸夾角的餘弦。
+                        if (n.Z <= UpwardNormalThreshold) continue;
+
+                        double cos = Math.Min(1.0, Math.Max(-1.0, n.Z));
+                        double slopePct = Math.Tan(Math.Acos(cos)) * 100.0;
+                        slopes.Add(slopePct);
+                    }
+                }
+                else if (obj is GeometryInstance gi)
+                {
+                    CollectUpwardSlopes(gi.GetInstanceGeometry(), slopes);
+                }
+            }
         }
     }
 }
