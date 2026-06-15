@@ -434,10 +434,6 @@ namespace RevitMCP.Core
                         result = FloorSlopeAnalyzer.Run(_uiApp.ActiveUIDocument.Document, parameters);
                         break;
 
-                    case "analyze_floor_slopes":
-                        result = FloorSlopeAnalyzer.AnalyzeAndWriteSlopes(_uiApp.ActiveUIDocument.Document, parameters);
-                        break;
-
                     default:
                         throw new NotImplementedException($"未實作的命令: {request.CommandName}");
                 }

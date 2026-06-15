@@ -34,7 +34,7 @@ These counts must be derived from source, not copied by memory.
 | Item | Current Count | Source of Truth |
 |---|---:|---|
 | Runtime MCP tools | 96 | `registerRevitTools()` from `MCP-Server/src/tools/index.ts` |
-| Domain SOP files | 44 | `domain/*.md` except `domain/README.md`, plus `domain/references/*.md` |
+| Domain SOP files | 45 | `domain/*.md` except `domain/README.md`, plus `domain/references/*.md` |
 | Claude skills | 21 | `.claude/skills/*/SKILL.md` |
 
 When these numbers change, update `CLAUDE.md`, `README.md`, `README.en.md`, `docs/DOCUMENT_AUDIENCE_INVENTORY.md`, and any public site copy that makes grand-total claims. Then run `scripts/verify-qaqc.ps1 -SkipBuild -SkipDeploy`.
@@ -271,6 +271,7 @@ Read the matching file before applying a workflow or calculation.
 | floor area, FAR review, gross floor area | `domain/floor-area-review.md` |
 | floor slope, drainage slope, slab slope, 樓板坡度, 排水坡度, 洩水 | `domain/floor-slope-analysis.md` |
 | IFC, structural sync, imported structural framing | `domain/ifc-structural-sync.md` |
+| local update, environment, rebuild, build, redeploy, install, setup, 重新部署, 同步更新 | `domain/local-update-workflow.md` |
 | mechanical part, assembly, BIP, mechanical documentation | `domain/mechanical-part-doc.md` |
 | MEP clash, CSA clash, penetration, beam penetration | `domain/mep-csa-clash-detection.md` |
 | MEP extension, pyRevit MEP guide | `domain/mep-extension-guide.md` |

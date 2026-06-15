@@ -163,7 +163,7 @@
           }
         }
       },
-      "Nice3point.Revit.Api.RevitAPI/2025.4.41": {
+      "Nice3point.Revit.Api.RevitAPI/2025.4.50": {
         "type": "package",
         "compile": {
           "ref/net8.0-windows7.0/RevitAPI.dll": {
@@ -171,7 +171,7 @@
           }
         }
       },
-      "Nice3point.Revit.Api.RevitAPIUI/2025.4.41": {
+      "Nice3point.Revit.Api.RevitAPIUI/2025.4.50": {
         "type": "package",
         "compile": {
           "ref/net8.0-windows7.0/RevitAPIUI.dll": {
@@ -1605,33 +1605,33 @@
         "packageIcon.png"
       ]
     },
-    "Nice3point.Revit.Api.RevitAPI/2025.4.41": {
-      "sha512": "L+zOGnMn0U+kckJfzMKKtARIqkhDYcg5UtsNffnDM8+04Rx4zoWY6C9kxOBJTHJqgt8za/A0LxWubSfWHgvjDg==",
+    "Nice3point.Revit.Api.RevitAPI/2025.4.50": {
+      "sha512": "NeoGX1A4TTNAtykG5GVDg7aqKur1xZ1bIQZsl2UBsM+1IBF3/lFJy0YWMx29ndJXn6mZb3Ju6tOYBvS9VvUIbg==",
       "type": "package",
-      "path": "nice3point.revit.api.revitapi/2025.4.41",
+      "path": "nice3point.revit.api.revitapi/2025.4.50",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
         "License.md",
         "Readme.md",
         "images/PackageIcon.png",
-        "nice3point.revit.api.revitapi.2025.4.41.nupkg.sha512",
+        "nice3point.revit.api.revitapi.2025.4.50.nupkg.sha512",
         "nice3point.revit.api.revitapi.nuspec",
         "ref/net8.0-windows7.0/RevitAPI.dll",
         "ref/net8.0-windows7.0/RevitAPI.xml"
       ]
     },
-    "Nice3point.Revit.Api.RevitAPIUI/2025.4.41": {
-      "sha512": "oTmL9O6CL16VSmkTHtfeFXBDhd8eSpoMHP73MoKkdxqLkuMr5jL8fCsXkaEo6y75ez/hWsrBJ2kZ8brBCmvJqA==",
+    "Nice3point.Revit.Api.RevitAPIUI/2025.4.50": {
+      "sha512": "FCogEBlvk78ezXP+CahzpopbjNnZctc/Y1ZJd4OPRghqFFiApZeX+8cQD+7tHFA+UhLKRJhl5rL8HT23dd6jOg==",
       "type": "package",
-      "path": "nice3point.revit.api.revitapiui/2025.4.41",
+      "path": "nice3point.revit.api.revitapiui/2025.4.50",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
         "License.md",
         "Readme.md",
         "images/PackageIcon.png",
-        "nice3point.revit.api.revitapiui.2025.4.41.nupkg.sha512",
+        "nice3point.revit.api.revitapiui.2025.4.50.nupkg.sha512",
         "nice3point.revit.api.revitapiui.nuspec",
         "ref/net8.0-windows7.0/RevitAPIUI.dll",
         "ref/net8.0-windows7.0/RevitAPIUI.xml"
@@ -4850,7 +4850,7 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\USER\\.nuget\\packages\\": {}
+    "C:\\Users\\yun\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
@@ -4858,11 +4858,11 @@
       "projectUniqueName": "C:\\WIP\\REVIT_MCP\\MCP\\RevitMCP.csproj",
       "projectName": "RevitMCP",
       "projectPath": "C:\\WIP\\REVIT_MCP\\MCP\\RevitMCP.csproj",
-      "packagesPath": "C:\\Users\\USER\\.nuget\\packages\\",
+      "packagesPath": "C:\\Users\\yun\\.nuget\\packages\\",
       "outputPath": "C:\\WIP\\REVIT_MCP\\MCP\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\USER\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        "C:\\Users\\yun\\AppData\\Roaming\\NuGet\\NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net8.0-windows7.0"
@@ -4885,7 +4885,8 @@
         "enableAudit": "true",
         "auditLevel": "low",
         "auditMode": "direct"
-      }
+      },
+      "SdkAnalysisLevel": "10.0.200"
     },
     "frameworks": {
       "net8.0-windows7.0": {
@@ -4927,7 +4928,7 @@
             "privateAssets": "none"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.416/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.203/PortableRuntimeIdentifierGraph.json"
       }
     }
   }
