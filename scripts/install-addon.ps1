@@ -325,28 +325,33 @@ Write-Host "正在複製檔案..." -ForegroundColor Yellow
 Write-Host ""
 
 # 檢查目標資料夾是否存在
-if (-not (Test-Path $addonPath)) {
-    Write-Host "正在建立目標資料夾..." -ForegroundColor Yellow
+$subDir = Join-Path $addonPath "RevitMCP"
+if (-not (Test-Path $subDir)) {
+    Write-Host "正在建立目標子資料夾..." -ForegroundColor Yellow
     try {
-        New-Item -ItemType Directory -Path $addonPath -Force | Out-Null
+        New-Item -ItemType Directory -Path $subDir -Force | Out-Null
     }
     catch {
-        Write-Host "❌ 錯誤：無法建立目標資料夾" -ForegroundColor Red
-        Write-Host "路徑：$addonPath" -ForegroundColor Yellow
+        Write-Host "❌ 錯誤：無法建立目標子資料夾" -ForegroundColor Red
+        Write-Host "路徑：$subDir" -ForegroundColor Yellow
         Write-Host "錯誤詳情：$_" -ForegroundColor Yellow
         Read-Host "按 Enter 結束"
         exit 1
     }
 }
 
-# 複製 DLL
+# 複製 DLL 與所有相依套件 (從 bin\$buildConfig)
+Write-Host "正在複製 DLL 與相依套件到 $subDir..." -ForegroundColor Yellow
 try {
-    Copy-Item -Path $sourceDll -Destination (Join-Path $addonPath "RevitMCP.dll") -Force -ErrorAction Stop
-    Write-Host "✓ 已複製 RevitMCP.dll" -ForegroundColor Green
+    $binDir = Join-Path $projectRoot "MCP\bin\$buildConfig"
+    Get-ChildItem -Path $binDir -File | ForEach-Object {
+        $dest = Join-Path $subDir $_.Name
+        Copy-Item -Path $_.FullName -Destination $dest -Force -ErrorAction Stop
+        Write-Host "✓ 已複製 $_.Name" -ForegroundColor Green
+    }
 }
 catch {
-    Write-Host "❌ 錯誤：無法複製 RevitMCP.dll" -ForegroundColor Red
-    Write-Host ""
+    Write-Host "❌ 錯誤：無法複製建構內容到子資料夾" -ForegroundColor Red
     Write-Host "可能的原因：" -ForegroundColor Yellow
     Write-Host "- Revit 正在執行中（請關閉 Revit 後重試）" -ForegroundColor Yellow
     Write-Host "- 目標資料夾沒有寫入權限" -ForegroundColor Yellow
@@ -355,7 +360,7 @@ catch {
     exit 1
 }
 
-# 複製 ADDIN
+# 複製 ADDIN 到父資料夾
 try {
     Copy-Item -Path $sourceAddin -Destination (Join-Path $addonPath "RevitMCP.addin") -Force -ErrorAction Stop
     Write-Host "✓ 已複製 $(Split-Path $sourceAddin -Leaf)" -ForegroundColor Green
@@ -367,15 +372,18 @@ catch {
     exit 1
 }
 
-# 複製相依套件（如果存在）
-$sourceJson = Join-Path $projectRoot "MCP\bin\$buildConfig\Newtonsoft.Json.dll"
-if (Test-Path $sourceJson) {
-    try {
-        Copy-Item -Path $sourceJson -Destination (Join-Path $addonPath "Newtonsoft.Json.dll") -Force -ErrorAction Stop
-        Write-Host "✓ 已複製 Newtonsoft.Json.dll" -ForegroundColor Green
-    }
-    catch {
-        Write-Host "⚠️  警告：無法複製 Newtonsoft.Json.dll（非關鍵檔案）" -ForegroundColor Yellow
+# 清理舊版位於根目錄的 legacy DLL 檔案 (避免干擾)
+foreach ($legacyFile in @("RevitMCP.dll", "Newtonsoft.Json.dll")) {
+    $legacyPath = Join-Path $addonPath $legacyFile
+    if (Test-Path $legacyPath) {
+        try {
+            Remove-Item -Path $legacyPath -Force -ErrorAction SilentlyContinue
+            Write-Host "✓ 已清理根目錄舊檔 $legacyFile" -ForegroundColor Gray
+        }
+        catch {
+            # 僅為警告，不中斷
+            Write-Host "⚠️  無法刪除根目錄舊檔 $legacyFile (可能被鎖定)" -ForegroundColor Yellow
+        }
     }
 }
 
